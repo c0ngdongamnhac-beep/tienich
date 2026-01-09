@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Square Notes Pro - Full Version</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary: #818cf8;
+            --accent: #c084fc;
+            --bg: #0b0f1a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0b0f1a 100%);
+            color: #e2e8f0;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        /* --- TABS SYSTEM --- */
+        .tab-navigation {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .tab-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: #94a3b8;
+            padding: 12px 24px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            box-shadow: 0 0 20px rgba(129, 140, 248, 0.3);
+        }
+
+        .section-content { display: none; }
+        .section-content.active { display: block; }
+
+        /* --- SQUARE NOTES ORIGIN STYLES --- */
+        header h1 {
+            text-align: center; font-weight: 600; letter-spacing: -1px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 30px; font-size: 2.5rem;
+        }
+
+        .input-wrapper {
+            max-width: 600px; margin: 0 auto 50px auto;
+            background: var(--card-bg); backdrop-filter: blur(12px);
+            border: 1px solid var(--border); padding: 20px;
+            border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        textarea {
+            width: 100%; background: transparent; border: none; color: white;
+            font-size: 1rem; resize: none; outline: none; min-height: 80px; font-family: inherit;
+        }
+
+        .input-footer {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;
+        }
+
+        button.btn-add {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white; border: none; padding: 8px 20px; border-radius: 10px;
+            font-weight: 600; cursor: pointer; transition: 0.3s;
+        }
+        button.btn-add:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(129, 140, 248, 0.4); }
+
+        .notes-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px; align-items: start;
+        }
+
+        .note-card {
+            background: var(--card-bg); backdrop-filter: blur(10px);
+            border: 1px solid var(--border); border-radius: 18px; padding: 20px;
+            display: flex; flex-direction: column; aspect-ratio: 1 / 1;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;
+        }
+        .note-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 15px 30px rgba(0,0,0,0.4); }
+
+        .note-content {
+            flex: 1; font-size: 0.95rem; line-height: 1.5; overflow-y: auto;
+            margin-bottom: 15px; scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+            word-break: break-word; white-space: pre-wrap;
+        }
+        .note-content a { color: var(--primary); text-decoration: none; font-weight: 500; }
+        .note-content a:hover { text-decoration: underline; }
+
+        .note-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #94a3b8; }
+        .btn-group { display: flex; gap: 8px; }
+
+        .icon-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            color: #cbd5e1; padding: 5px 10px; border-radius: 6px; cursor: pointer;
+            font-size: 0.7rem; text-transform: uppercase;
+        }
+        .icon-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn-del:hover { background: #ef4444; border-color: #ef4444; }
+
+        /* --- FINANCE SPECIFIC --- */
+        .finance-summary {
+            background: linear-gradient(135deg, #4f46e5, #9333ea);
+            padding: 30px; border-radius: 25px; text-align: center;
+            max-width: 600px; margin: 0 auto 30px;
+        }
+
+        #toast {
+            position: fixed; bottom: 20px; right: 20px;
+            background: var(--primary); color: white;
+            padding: 10px 20px; border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: none; animation: slideIn 0.3s ease; z-index: 1000;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    </style>
+</head>
+<body>
+
+<div id="toast">Thông báo!</div>
+
+<div class="container">
+    <header><h1>Square Notes Pro</h1></header>
+
+    <div class="tab-navigation">
+        <button class="tab-btn active" onclick="openSection(event, 'notes-section')">📝 Ghi chú</button>
+        <button class="tab-btn" onclick="openSection(event, 'finance-section')">💰 Thu chi</button>
+        <button class="tab-btn" onclick="openSection(event, 'tasks-section')">✅ Công việc</button>
+    </div>
+
+    <main id="notes-section" class="section-content active">
+        <div class="input-wrapper">
+            <textarea id="noteInput" placeholder="Viết ghi chú hoặc dán link tại đây..."></textarea>
+            <div class="input-footer">
+                <span style="font-size: 0.8rem; color: #64748b;">Ctrl + Enter để lưu</span>
+                <button class="btn-add" onclick="addNote()">Lưu thẻ</button>
+            </div>
+        </div>
+        <div class="notes-grid" id="notesGrid"></div>
+    </main>
+
+    <main id="finance-section" class="section-content">
+        <div class="finance-summary">
+            <p class="text-indigo-100 text-sm opacity-80">Số dư hiện tại</p>
+            <h2 id="balance" class="text-4xl font-bold mt-1 text-white">0₫</h2>
+        </div>
+        
+        <div class="input-wrapper">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="relative">
+                    <input id="amount" type="number" placeholder="Số tiền (ví dụ: 50)" class="w-full p-3 bg-black/20 border border-white/10 rounded-xl text-white outline-none focus:border-indigo-400 font-bold">
+                    <span class="absolute right-4 top-3 text-slate-500 font-bold">.000₫</span>
+                </div>
+                <input id="desc" type="text" placeholder="Ghi chú chi tiêu..." class="w-full p-3 bg-black/20 border border-white/10 rounded-xl text-white outline-none focus:border-indigo-400">
+            </div>
+            <div class="flex gap-3">
+                <button onclick="addTransaction('income')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition">+ THU</button>
+                <button onclick="addTransaction('expense')" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl transition">- CHI</button>
+            </div>
+        </div>
+        <div id="history" class="max-w-xl mx-auto space-y-3"></div>
+    </main>
+
+    <main id="tasks-section" class="section-content">
+        <div class="input-wrapper max-w-xl">
+            <div class="flex gap-2">
+                <input id="taskInput" type="text" placeholder="Bạn cần làm gì?" class="flex-1 p-3 bg-black/20 border border-white/10 rounded-xl text-white outline-none">
+                <button onclick="addTask()" class="btn-add">Thêm</button>
+            </div>
+        </div>
+        <div id="taskList" class="max-w-xl mx-auto space-y-3"></div>
+    </main>
+</div>
+
+<script>
+    // --- HÀM CHUYỂN TAB ---
+    function openSection(evt, sectionId) {
+        document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+        evt.currentTarget.classList.add('active');
+    }
+
+    // --- LOGIC GHI CHÚ GỐC (GIỮ NGUYÊN 100%) ---
+    document.addEventListener('DOMContentLoaded', () => {
+        displayNotes();
+        updateFinanceUI();
+        renderTasks();
+    });
+
+    function addNote() {
+        const input = document.getElementById('noteInput');
+        if (!input.value.trim()) return;
+        const note = { id: Date.now(), text: input.value.trim(), date: new Date().toLocaleDateString('vi-VN') };
+        const notes = JSON.parse(localStorage.getItem('square-notes') || '[]');
+        notes.unshift(note);
+        localStorage.setItem('square-notes', JSON.stringify(notes));
+        input.value = "";
+        displayNotes();
+    }
+
+    function linkify(text) {
+        const escaped = text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]));
+        const urlPattern = /(\b(https?):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+        return escaped.replace(urlPattern, url => `<a href="${url}" target="_blank">${url}</a>`);
+    }
+
+    function displayNotes() {
+        const notes = JSON.parse(localStorage.getItem('square-notes') || '[]');
+        const grid = document.getElementById('notesGrid');
+        grid.innerHTML = "";
+        notes.forEach(note => {
+            const card = document.createElement('div');
+            card.className = 'note-card';
+            card.innerHTML = `
+                <div class="note-content">${linkify(note.text)}</div>
+                <div class="note-footer">
+                    <span>${note.date}</span>
+                    <div class="btn-group">
+                        <button class="icon-btn" onclick="copyNote(\`${note.text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">Copy</button>
+                        <button class="icon-btn btn-del" onclick="deleteItem('note', ${note.id})">Xóa</button>
+                    </div>
+                </div>`;
+            grid.appendChild(card);
+        });
+    }
+
+    function copyNote(text) {
+        navigator.clipboard.writeText(text).then(() => showToast("Đã sao chép ghi chú!"));
+    }
+
+    // --- LOGIC TÀI CHÍNH ---
+    let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+    function addTransaction(type) {
+        const amountInput = document.getElementById('amount');
+        const descInput = document.getElementById('desc');
+        let val = parseFloat(amountInput.value);
+        if (!val || !descInput.value) return showToast("Nhập đủ tiền và ghi chú!");
+        
+        const finalAmount = val * 1000;
+        transactions.unshift({
+            id: Date.now(),
+            amount: type === 'expense' ? -finalAmount : finalAmount,
+            desc: descInput.value,
+            date: new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})
+        });
+        localStorage.setItem('transactions', JSON.stringify(transactions));
+        amountInput.value = ''; descInput.value = '';
+        updateFinanceUI();
+    }
+
+    function updateFinanceUI() {
+        const history = document.getElementById('history');
+        const balanceEl = document.getElementById('balance');
+        let total = 0;
+        history.innerHTML = '';
+        transactions.forEach(t => {
+            total += t.amount;
+            history.innerHTML += `
+                <div class="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/10">
+                    <div><p class="font-semibold text-slate-200">${t.desc}</p><p class="text-[10px] text-slate-500">${t.date}</p></div>
+                    <div class="flex items-center gap-3">
+                        <span class="font-bold ${t.amount > 0 ? 'text-emerald-400' : 'text-rose-400'}">${t.amount.toLocaleString()}₫</span>
+                        <button onclick="deleteItem('trans', ${t.id})" class="text-slate-600 hover:text-white">✕</button>
+                    </div>
+                </div>`;
+        });
+        balanceEl.innerText = total.toLocaleString() + '₫';
+    }
+
+    // --- LOGIC CÔNG VIỆC ---
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    function addTask() {
+        const input = document.getElementById('taskInput');
+        if (!input.value) return;
+        tasks.unshift({ id: Date.now(), text: input.value, done: false });
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        input.value = '';
+        renderTasks();
+    }
+
+    function renderTasks() {
+        const list = document.getElementById('taskList');
+        list.innerHTML = '';
+        tasks.forEach(t => {
+            list.innerHTML += `
+                <div class="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/10">
+                    <div onclick="toggleTask(${t.id})" class="flex items-center gap-3 cursor-pointer">
+                        <div class="w-5 h-5 border-2 rounded-full ${t.done ? 'bg-indigo-500 border-indigo-500' : 'border-slate-500'}"></div>
+                        <span class="${t.done ? 'line-through text-slate-500' : 'text-slate-200'}">${t.text}</span>
+                    </div>
+                    <button onclick="deleteItem('task', ${t.id})" class="text-slate-600 hover:text-rose-500">✕</button>
+                </div>`;
+        });
+    }
+
+    function toggleTask(id) {
+        tasks = tasks.map(t => t.id === id ? {...t, done: !t.done} : t);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        renderTasks();
+    }
+
+    // --- HÀM XÓA CHUNG ---
+    function deleteItem(type, id) {
+        if (type === 'note') {
+            let notes = JSON.parse(localStorage.getItem('square-notes') || '[]');
+            notes = notes.filter(n => n.id !== id);
+            localStorage.setItem('square-notes', JSON.stringify(notes));
+            displayNotes();
+        } else if (type === 'trans') {
+            transactions = transactions.filter(t => t.id !== id);
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            updateFinanceUI();
+        } else {
+            tasks = tasks.filter(t => t.id !== id);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            renderTasks();
+        }
+        showToast("Đã xóa!");
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.innerText = msg;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 2000);
+    }
+
+    document.getElementById('noteInput').addEventListener('keydown', e => {
+        if (e.ctrlKey && e.key === 'Enter') addNote();
+    });
+</script>
+
+</body>
+</html>
