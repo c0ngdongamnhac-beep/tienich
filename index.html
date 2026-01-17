@@ -6,6 +6,7 @@
     <title>Square Notes Pro - Full Version</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary: #818cf8;
@@ -27,115 +28,66 @@
 
         .container { max-width: 1200px; margin: 0 auto; }
 
-        /* --- TABS SYSTEM --- */
+        /* --- HEADER & TABS --- */
+        header h1 {
+            text-align: center; font-weight: 600; letter-spacing: -1px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 15px; font-size: 1.5rem; /* Đã chỉnh nhỏ tiêu đề */
+        }
+
         .tab-navigation {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 30px;
+            display: flex; justify-content: center; gap: 10px;
+            margin-bottom: 30px; flex-wrap: wrap;
         }
 
         .tab-btn {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            color: #94a3b8;
-            padding: 12px 24px;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: 0.3s;
-            font-weight: 600;
-            backdrop-filter: blur(10px);
+            background: var(--card-bg); border: 1px solid var(--border);
+            color: #94a3b8; padding: 10px 20px; border-radius: 12px;
+            cursor: pointer; transition: 0.3s; font-weight: 600; font-size: 0.9rem;
         }
 
         .tab-btn.active {
             background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: white;
-            border: none;
-            box-shadow: 0 0 20px rgba(129, 140, 248, 0.3);
+            color: white; border: none; box-shadow: 0 0 15px rgba(129, 140, 248, 0.3);
         }
 
         .section-content { display: none; }
         .section-content.active { display: block; }
 
-        /* --- SQUARE NOTES ORIGIN STYLES --- */
-        header h1 {
-            text-align: center; font-weight: 600; letter-spacing: -1px;
-            background: linear-gradient(to right, var(--primary), var(--accent));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            margin-bottom: 30px; font-size: 2.5rem;
-        }
-
+        /* --- UI COMPONENTS --- */
         .input-wrapper {
-            max-width: 600px; margin: 0 auto 50px auto;
+            max-width: 600px; margin: 0 auto 30px auto;
             background: var(--card-bg); backdrop-filter: blur(12px);
-            border: 1px solid var(--border); padding: 20px;
-            border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid var(--border); padding: 20px; border-radius: 20px;
         }
 
-        textarea {
+        textarea, .simple-input {
             width: 100%; background: transparent; border: none; color: white;
-            font-size: 1rem; resize: none; outline: none; min-height: 80px; font-family: inherit;
+            font-size: 1rem; outline: none; font-family: inherit;
         }
 
-        .input-footer {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;
-        }
+        /* --- HABIT TRACKER --- */
+        .clarity-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
+        .clarity-section { background: var(--card-bg); padding: 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 20px; }
+        .clarity-section h2 { font-size: 0.7rem; text-transform: uppercase; color: var(--accent); font-weight: 700; letter-spacing: 1px; }
+        
+        .habit-row { display: grid; grid-template-columns: 120px 1fr; gap: 10px; align-items: center; margin-bottom: 15px; }
+        .habit-name-box { display: flex; flex-direction: column; }
+        .habit-name { background: transparent; border: none; color: white; font-size: 0.85rem; outline: none; font-weight: 500; }
+        .days-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(12px, 1fr)); gap: 3px; }
+        .day-cell { aspect-ratio: 1/1; background: rgba(255,255,255,0.1); border-radius: 2px; cursor: pointer; transition: 0.2s; }
+        .day-cell.active { background: var(--primary); box-shadow: 0 0 5px var(--primary); }
+        .chart-container { height: 250px; position: relative; }
 
-        button.btn-add {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: white; border: none; padding: 8px 20px; border-radius: 10px;
-            font-weight: 600; cursor: pointer; transition: 0.3s;
-        }
-        button.btn-add:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(129, 140, 248, 0.4); }
+        /* --- NOTES & FINANCE --- */
+        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .note-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 18px; padding: 20px; aspect-ratio: 1/1; display: flex; flex-direction: column; }
+        .note-content { flex: 1; overflow-y: auto; font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+        
+        #toast { position: fixed; bottom: 20px; right: 20px; background: var(--primary); color: white; padding: 10px 20px; border-radius: 12px; display: none; z-index: 1000; font-size: 0.9rem; }
 
-        .notes-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px; align-items: start;
-        }
-
-        .note-card {
-            background: var(--card-bg); backdrop-filter: blur(10px);
-            border: 1px solid var(--border); border-radius: 18px; padding: 20px;
-            display: flex; flex-direction: column; aspect-ratio: 1 / 1;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;
-        }
-        .note-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 15px 30px rgba(0,0,0,0.4); }
-
-        .note-content {
-            flex: 1; font-size: 0.95rem; line-height: 1.5; overflow-y: auto;
-            margin-bottom: 15px; scrollbar-width: thin; scrollbar-color: var(--border) transparent;
-            word-break: break-word; white-space: pre-wrap;
-        }
-        .note-content a { color: var(--primary); text-decoration: none; font-weight: 500; }
-        .note-content a:hover { text-decoration: underline; }
-
-        .note-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #94a3b8; }
-        .btn-group { display: flex; gap: 8px; }
-
-        .icon-btn {
-            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-            color: #cbd5e1; padding: 5px 10px; border-radius: 6px; cursor: pointer;
-            font-size: 0.7rem; text-transform: uppercase;
-        }
-        .icon-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
-        .btn-del:hover { background: #ef4444; border-color: #ef4444; }
-
-        /* --- FINANCE SPECIFIC --- */
-        .finance-summary {
-            background: linear-gradient(135deg, #4f46e5, #9333ea);
-            padding: 30px; border-radius: 25px; text-align: center;
-            max-width: 600px; margin: 0 auto 30px;
-        }
-
-        #toast {
-            position: fixed; bottom: 20px; right: 20px;
-            background: var(--primary); color: white;
-            padding: 10px 20px; border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            display: none; animation: slideIn 0.3s ease; z-index: 1000;
-        }
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @media (max-width: 768px) { .clarity-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -147,34 +99,67 @@
 
     <div class="tab-navigation">
         <button class="tab-btn active" onclick="openSection(event, 'notes-section')">📝 Ghi chú</button>
+        <button class="tab-btn" onclick="openSection(event, 'clarity-section')">✨ Clarity Plan</button>
         <button class="tab-btn" onclick="openSection(event, 'finance-section')">💰 Thu chi</button>
         <button class="tab-btn" onclick="openSection(event, 'tasks-section')">✅ Công việc</button>
     </div>
 
     <main id="notes-section" class="section-content active">
         <div class="input-wrapper">
-            <textarea id="noteInput" placeholder="Viết ghi chú hoặc dán link tại đây..."></textarea>
-            <div class="input-footer">
-                <span style="font-size: 0.8rem; color: #64748b;">Ctrl + Enter để lưu</span>
-                <button class="btn-add" onclick="addNote()">Lưu thẻ</button>
+            <textarea id="noteInput" placeholder="Viết ghi chú hoặc dán link tại đây..." rows="3"></textarea>
+            <div class="flex justify-between items-center mt-4 pt-4 border-t border-white/10">
+                <span class="text-[10px] text-slate-500 uppercase font-bold">Ctrl + Enter để lưu</span>
+                <button class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition" onclick="addNote()">LƯU THẺ</button>
             </div>
         </div>
         <div class="notes-grid" id="notesGrid"></div>
     </main>
 
+    <main id="clarity-section" class="section-content">
+        <div class="flex justify-end mb-4 gap-2">
+            <button class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold transition" onclick="saveClarity()">LƯU KẾ HOẠCH</button>
+        </div>
+        <div class="clarity-grid">
+            <div class="left-col">
+                <div class="clarity-section">
+                    <h2>The Big Rock</h2>
+                    <input type="text" id="bigRock" class="simple-input text-xl font-bold mt-2" placeholder="Mục tiêu quan trọng nhất...">
+                </div>
+                <div class="clarity-section">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="m-0">Habit Tracker</h2>
+                        <button onclick="addNewHabit()" class="text-[10px] bg-white/10 hover:bg-indigo-500 px-2 py-1 rounded-md transition">+ THÊM</button>
+                    </div>
+                    <div id="habit-list"></div>
+                </div>
+            </div>
+            <div class="right-col">
+                <div class="clarity-section">
+                    <h2>Analytics (%)</h2>
+                    <div class="chart-container">
+                        <canvas id="myChart"></canvas>
+                    </div>
+                </div>
+                <div class="clarity-section">
+                    <h2>Ghi chú nhanh</h2>
+                    <textarea id="clarityNotes" class="simple-input mt-2" rows="5" placeholder="Viết ghi chú lập kế hoạch..."></textarea>
+                </div>
+            </div>
+        </div>
+    </main>
+
     <main id="finance-section" class="section-content">
-        <div class="finance-summary">
-            <p class="text-indigo-100 text-sm opacity-80">Số dư hiện tại</p>
+        <div class="max-w-[600px] mx-auto bg-gradient-to-br from-indigo-600 to-purple-600 p-8 rounded-[25px] text-center mb-8">
+            <p class="text-indigo-100 text-sm opacity-80 uppercase font-bold tracking-widest">Số dư hiện tại</p>
             <h2 id="balance" class="text-4xl font-bold mt-1 text-white">0₫</h2>
         </div>
-        
         <div class="input-wrapper">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div class="relative">
-                    <input id="amount" type="number" placeholder="Số tiền (ví dụ: 50)" class="w-full p-3 bg-black/20 border border-white/10 rounded-xl text-white outline-none focus:border-indigo-400 font-bold">
+                    <input id="amount" type="number" placeholder="Số tiền (ví dụ: 50)" class="w-full p-3 bg-black/20 border border-white/10 rounded-xl text-white outline-none">
                     <span class="absolute right-4 top-3 text-slate-500 font-bold">.000₫</span>
                 </div>
-                <input id="desc" type="text" placeholder="Ghi chú chi tiêu..." class="w-full p-3 bg-black/20 border border-white/10 rounded-xl text-white outline-none focus:border-indigo-400">
+                <input id="desc" type="text" placeholder="Ghi chú chi tiêu..." class="w-full p-3 bg-black/20 border border-white/10 rounded-xl text-white outline-none">
             </div>
             <div class="flex gap-3">
                 <button onclick="addTransaction('income')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition">+ THU</button>
@@ -188,7 +173,7 @@
         <div class="input-wrapper max-w-xl">
             <div class="flex gap-2">
                 <input id="taskInput" type="text" placeholder="Bạn cần làm gì?" class="flex-1 p-3 bg-black/20 border border-white/10 rounded-xl text-white outline-none">
-                <button onclick="addTask()" class="btn-add">Thêm</button>
+                <button onclick="addTask()" class="bg-indigo-500 px-6 rounded-xl font-bold">THÊM</button>
             </div>
         </div>
         <div id="taskList" class="max-w-xl mx-auto space-y-3"></div>
@@ -196,21 +181,125 @@
 </div>
 
 <script>
-    // --- HÀM CHUYỂN TAB ---
+    // --- STATE ---
+    let myChart;
+    let habits = [
+        { name: 'Đọc sách', checks: Array(31).fill(false) },
+        { name: 'Tập thể dục', checks: Array(31).fill(false) },
+        { name: 'Học code', checks: Array(31).fill(false) },
+        { name: 'Thiền', checks: Array(31).fill(false) }
+    ];
+
+    // --- TABS ---
     function openSection(evt, sectionId) {
         document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(sectionId).classList.add('active');
         evt.currentTarget.classList.add('active');
+        if(sectionId === 'clarity-section' && myChart) myChart.update();
     }
 
-    // --- LOGIC GHI CHÚ GỐC (GIỮ NGUYÊN 100%) ---
+    // --- INIT ---
     document.addEventListener('DOMContentLoaded', () => {
         displayNotes();
         updateFinanceUI();
         renderTasks();
+        initClarity();
     });
 
+    // --- CLARITY LOGIC ---
+    function initClarity() {
+        const saved = JSON.parse(localStorage.getItem('clarity_v3'));
+        if (saved) {
+            document.getElementById('bigRock').value = saved.bigRock || '';
+            document.getElementById('clarityNotes').value = saved.notes || '';
+            if(saved.habits) habits = saved.habits;
+        }
+        renderHabits();
+        renderChart();
+    }
+
+    function renderHabits() {
+        const container = document.getElementById('habit-list');
+        container.innerHTML = habits.map((habit, idx) => `
+            <div class="habit-row">
+                <div class="habit-name-box">
+                    <input type="text" class="habit-name" value="${habit.name}" onchange="updateHabitName(${idx}, this.value)">
+                    <button onclick="deleteHabit(${idx})" class="text-[8px] text-left text-slate-600 hover:text-rose-400 font-bold uppercase">Xóa</button>
+                </div>
+                <div class="days-grid">
+                    ${habit.checks.map((c, dIdx) => `
+                        <div class="day-cell ${c ? 'active' : ''}" onclick="toggleHabitDay(${idx}, ${dIdx})"></div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function addNewHabit() {
+        const name = prompt("Tên thói quen mới:");
+        if (!name) return;
+        habits.push({ name: name, checks: Array(31).fill(false) });
+        renderHabits();
+        updateChart();
+        saveClarity();
+    }
+
+    function deleteHabit(idx) {
+        if (confirm("Xóa thói quen này?")) {
+            habits.splice(idx, 1);
+            renderHabits();
+            updateChart();
+            saveClarity();
+        }
+    }
+
+    function toggleHabitDay(hIdx, dIdx) {
+        habits[hIdx].checks[dIdx] = !habits[hIdx].checks[dIdx];
+        renderHabits();
+        updateChart();
+    }
+
+    function updateHabitName(idx, val) {
+        habits[idx].name = val;
+        updateChart();
+    }
+
+    function renderChart() {
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const colors = ['#818cf8', '#c084fc', '#34d399', '#fb7185', '#fbbf24', '#22d3ee'];
+        myChart = new Chart(ctx, {
+            type: 'polarArea',
+            data: {
+                labels: habits.map(h => h.name),
+                datasets: [{
+                    data: habits.map(h => (h.checks.filter(c => c).length / 31 * 100).toFixed(0)),
+                    backgroundColor: habits.map((_, i) => colors[i % colors.length] + '80'),
+                    borderWidth: 0
+                }]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false,
+                scales: { r: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } } },
+                plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } }
+            }
+        });
+    }
+
+    function updateChart() {
+        myChart.data.labels = habits.map(h => h.name);
+        myChart.data.datasets[0].data = habits.map(h => (h.checks.filter(c => c).length / 31 * 100).toFixed(0));
+        myChart.data.datasets[0].backgroundColor = habits.map((_, i) => ['#818cf8', '#c084fc', '#34d399', '#fb7185'][i % 4] + '80');
+        myChart.update();
+    }
+
+    function saveClarity() {
+        const data = { bigRock: document.getElementById('bigRock').value, notes: document.getElementById('clarityNotes').value, habits: habits };
+        localStorage.setItem('clarity_v3', JSON.stringify(data));
+        showToast("Đã lưu kế hoạch!");
+    }
+
+    // --- NOTES LOGIC ---
     function addNote() {
         const input = document.getElementById('noteInput');
         if (!input.value.trim()) return;
@@ -222,51 +311,37 @@
         displayNotes();
     }
 
-    function linkify(text) {
-        const escaped = text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]));
-        const urlPattern = /(\b(https?):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-        return escaped.replace(urlPattern, url => `<a href="${url}" target="_blank">${url}</a>`);
-    }
-
     function displayNotes() {
         const notes = JSON.parse(localStorage.getItem('square-notes') || '[]');
         const grid = document.getElementById('notesGrid');
-        grid.innerHTML = "";
-        notes.forEach(note => {
-            const card = document.createElement('div');
-            card.className = 'note-card';
-            card.innerHTML = `
+        grid.innerHTML = notes.map(note => `
+            <div class="note-card">
                 <div class="note-content">${linkify(note.text)}</div>
-                <div class="note-footer">
+                <div class="flex justify-between items-center mt-4 text-[10px] text-slate-500 font-bold">
                     <span>${note.date}</span>
-                    <div class="btn-group">
-                        <button class="icon-btn" onclick="copyNote(\`${note.text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">Copy</button>
-                        <button class="icon-btn btn-del" onclick="deleteItem('note', ${note.id})">Xóa</button>
+                    <div class="flex gap-2">
+                        <button class="hover:text-indigo-400" onclick="copyNote(\`${note.text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">COPY</button>
+                        <button class="hover:text-rose-500" onclick="deleteItem('note', ${note.id})">XÓA</button>
                     </div>
-                </div>`;
-            grid.appendChild(card);
-        });
+                </div>
+            </div>
+        `).join('');
     }
 
-    function copyNote(text) {
-        navigator.clipboard.writeText(text).then(() => showToast("Đã sao chép ghi chú!"));
+    function linkify(text) {
+        const urlPattern = /(\b(https?):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+        return text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]))
+                   .replace(urlPattern, url => `<a href="${url}" target="_blank" class="text-indigo-400 hover:underline">${url}</a>`);
     }
 
-    // --- LOGIC TÀI CHÍNH ---
+    // --- FINANCE LOGIC ---
     let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
     function addTransaction(type) {
         const amountInput = document.getElementById('amount');
         const descInput = document.getElementById('desc');
         let val = parseFloat(amountInput.value);
-        if (!val || !descInput.value) return showToast("Nhập đủ tiền và ghi chú!");
-        
-        const finalAmount = val * 1000;
-        transactions.unshift({
-            id: Date.now(),
-            amount: type === 'expense' ? -finalAmount : finalAmount,
-            desc: descInput.value,
-            date: new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})
-        });
+        if (!val || !descInput.value) return showToast("Nhập đủ tiền và nội dung!");
+        transactions.unshift({ id: Date.now(), amount: type === 'expense' ? -(val * 1000) : (val * 1000), desc: descInput.value, date: new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) });
         localStorage.setItem('transactions', JSON.stringify(transactions));
         amountInput.value = ''; descInput.value = '';
         updateFinanceUI();
@@ -276,10 +351,9 @@
         const history = document.getElementById('history');
         const balanceEl = document.getElementById('balance');
         let total = 0;
-        history.innerHTML = '';
-        transactions.forEach(t => {
+        history.innerHTML = transactions.map(t => {
             total += t.amount;
-            history.innerHTML += `
+            return `
                 <div class="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/10">
                     <div><p class="font-semibold text-slate-200">${t.desc}</p><p class="text-[10px] text-slate-500">${t.date}</p></div>
                     <div class="flex items-center gap-3">
@@ -287,11 +361,11 @@
                         <button onclick="deleteItem('trans', ${t.id})" class="text-slate-600 hover:text-white">✕</button>
                     </div>
                 </div>`;
-        });
+        }).join('');
         balanceEl.innerText = total.toLocaleString() + '₫';
     }
 
-    // --- LOGIC CÔNG VIỆC ---
+    // --- TASKS ---
     let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
     function addTask() {
         const input = document.getElementById('taskInput');
@@ -304,17 +378,15 @@
 
     function renderTasks() {
         const list = document.getElementById('taskList');
-        list.innerHTML = '';
-        tasks.forEach(t => {
-            list.innerHTML += `
-                <div class="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/10">
-                    <div onclick="toggleTask(${t.id})" class="flex items-center gap-3 cursor-pointer">
-                        <div class="w-5 h-5 border-2 rounded-full ${t.done ? 'bg-indigo-500 border-indigo-500' : 'border-slate-500'}"></div>
-                        <span class="${t.done ? 'line-through text-slate-500' : 'text-slate-200'}">${t.text}</span>
-                    </div>
-                    <button onclick="deleteItem('task', ${t.id})" class="text-slate-600 hover:text-rose-500">✕</button>
-                </div>`;
-        });
+        list.innerHTML = tasks.map(t => `
+            <div class="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/10">
+                <div onclick="toggleTask(${t.id})" class="flex items-center gap-3 cursor-pointer">
+                    <div class="w-5 h-5 border-2 rounded-full ${t.done ? 'bg-indigo-500 border-indigo-500' : 'border-slate-500'}"></div>
+                    <span class="${t.done ? 'line-through text-slate-500' : 'text-slate-200'}">${t.text}</span>
+                </div>
+                <button onclick="deleteItem('task', ${t.id})" class="text-slate-600 hover:text-rose-500">✕</button>
+            </div>
+        `).join('');
     }
 
     function toggleTask(id) {
@@ -323,12 +395,11 @@
         renderTasks();
     }
 
-    // --- HÀM XÓA CHUNG ---
+    // --- HELPERS ---
     function deleteItem(type, id) {
         if (type === 'note') {
-            let notes = JSON.parse(localStorage.getItem('square-notes') || '[]');
-            notes = notes.filter(n => n.id !== id);
-            localStorage.setItem('square-notes', JSON.stringify(notes));
+            let n = JSON.parse(localStorage.getItem('square-notes') || '[]').filter(x => x.id !== id);
+            localStorage.setItem('square-notes', JSON.stringify(n));
             displayNotes();
         } else if (type === 'trans') {
             transactions = transactions.filter(t => t.id !== id);
@@ -342,10 +413,10 @@
         showToast("Đã xóa!");
     }
 
+    function copyNote(text) { navigator.clipboard.writeText(text).then(() => showToast("Đã sao chép!")); }
     function showToast(msg) {
         const toast = document.getElementById('toast');
-        toast.innerText = msg;
-        toast.style.display = 'block';
+        toast.innerText = msg; toast.style.display = 'block';
         setTimeout(() => toast.style.display = 'none', 2000);
     }
 
@@ -353,6 +424,5 @@
         if (e.ctrlKey && e.key === 'Enter') addNote();
     });
 </script>
-
 </body>
 </html>
